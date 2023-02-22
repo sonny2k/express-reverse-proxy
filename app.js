@@ -1,32 +1,37 @@
-const express = require('express')
-const app = express()
-const axios = require('axios')
-const cors = require('cors')
-const AxiosParamsObject = require('./classes/AxiosParamsObject')
+const express = require("express");
+const app = express();
+const axios = require("axios");
+const cors = require("cors");
+const AxiosParamsObject = require("./classes/AxiosParamsObject");
 
-app.use(cors({
-    origin: '*'
-}))
+app.use(
+  cors({
+    origin: "*",
+    credentials: true,
+  })
+);
 
-require('dotenv').config()
+require("dotenv").config();
 
+app.get(":endpoint([\\/\\w\\.-]*)", function (req, res) {
+  // Remove any trailing slash from base url
+  const endpoint =
+    process.env.API_BASE_URL.replace(/\/$/, "") + req.params.endpoint;
 
-app.get(':endpoint([\\/\\w\\.-]*)', function (req, res) {
-    // Remove any trailing slash from base url
-    const endpoint = (process.env.API_BASE_URL).replace(/\/$/, "") + req.params.endpoint
+  const paramsObj = new AxiosParamsObject();
+  paramsObj.addParamsFromRequest(req);
 
-    const paramsObj = new AxiosParamsObject()
-    paramsObj.setApiKey(process.env.API_KEY_PARAM_NAME, process.env.API_KEY)
-    paramsObj.addParamsFromRequest(req)
-    
-    axios.get(endpoint, {
-        params: paramsObj.getParams(req)
-    }).then(response => {
-        res.json(response.data)
-    }).catch(error => {
-        res.json(error)
+  axios
+    .put(endpoint, {
+      params: paramsObj.getParams(req),
+      withCredentials: true,
     })
-})
+    .then((response) => {
+      res.json(response.data);
+    })
+    .catch((error) => {
+      res.json(error);
+    });
+});
 
-
-app.listen(3000)
+app.listen(3000);
